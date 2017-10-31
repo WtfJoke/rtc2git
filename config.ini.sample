@@ -13,6 +13,8 @@ ScmCommand = lscm
 # Optional - Set encoding of files (For example encoding = UTF-8)
 # See "https://github.com/rtcTo/rtc2git/wiki/Encoding" for further instructions
 encoding =
+# Optional - Set empty SVN repo directory if you want to commit also in a SVN repo
+SVNRepoDir =
 
 [Migration]
 # Stream to be migrated,  referenced by Name or UUID
@@ -21,6 +23,9 @@ StreamToMigrate = MyDevelopmentStream
 # Optional - Used by author for prepare a workspace for migrating an earlier release-stream to a later one
 # (eg. When Migrating Stream_Version2, Previous-Stream would be Stream_Version1
 PreviousStream=
+
+# Specify if you want to load a single component
+component2Load =
 
 # Optional, can be defined additionally to set the workspace to a specific baseline
 # Use following format: ComponentName = BaseLineName, AnotherComponentName=BaseLineName

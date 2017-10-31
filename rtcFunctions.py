@@ -9,7 +9,7 @@ import shouter
 import sorter
 from configuration import ComponentBaseLineEntry
 from gitFunctions import Commiter, Differ
-
+from svnFunctions import svnCommiter
 
 class RTCInitializer:
     @staticmethod
@@ -45,7 +45,12 @@ class WorkspaceHandler:
         self.scmcommand = self.config.scmcommand
 
     def createandload(self, stream, componentbaselineentries=[]):
-        shell.execute("%s create workspace -r %s -s %s %s" % (self.scmcommand, self.repo, stream, self.workspace))
+        if self.config.component2load:
+            shell.execute("%s create workspace -r %s %s --empty" % (self.scmcommand, self.repo, self.workspace))
+            shell.execute("%s add component -r %s %s %s" % (self.scmcommand, self.repo, self.workspace, self.config.component2load))
+        else:
+            shell.execute("%s create workspace -r %s -s %s %s" % (self.scmcommand, self.repo, stream, self.workspace))
+
         if componentbaselineentries:
             self.setcomponentstobaseline(componentbaselineentries, stream)
         else:
@@ -54,9 +59,11 @@ class WorkspaceHandler:
         self.load()
 
     def load(self):
-        command = "%s load -r %s %s --force" % (self.scmcommand, self.repo, self.workspace)
+        command = "%s load -r %s %s --force --allow" % (self.scmcommand, self.repo, self.workspace)
         if self.config.includecomponentroots:
             command += " --include-root"
+        if self.config.component2load:
+            command += " %s" % (self.config.component2load)
         shouter.shout("Start (re)loading current workspace: " + command)
         shell.execute(command)
         shouter.shout("Load of workspace finished")
@@ -77,7 +84,7 @@ class WorkspaceHandler:
         if not self.hasflowtarget(streamuuid):
             shell.execute("%s add flowtarget -r %s %s %s" % (self.scmcommand, self.repo, self.workspace, streamuuid))
 
-        command = "%s set flowtarget -r %s %s --default --current %s" % (self.scmcommand, self.repo, self.workspace, streamuuid)
+        command = "%s set flowtarget -r %s %s --default i --current i %s" % (self.scmcommand, self.repo, self.workspace, streamuuid)
         shell.execute(command)
 
     def hasflowtarget(self, streamuuid):
@@ -166,12 +173,15 @@ class ImportHandler:
                         component = uuidpart[3].strip()[1:-1]
                         componentname = splittedinformationline[1]
                     else:
-                        baseline = uuidpart[5].strip()[1:-1]
+                        baseline = uuidpart[7].strip()[1:-1]  # fix trim brackets for vers. 6.0.4
                         baselinename = splittedinformationline[1]
-
                     if baseline and component:
-                        componentbaselinesentries.append(
-                            ComponentBaseLineEntry(component, baseline, componentname, baselinename))
+                        # if component2load is specified append only its entry
+                        if not self.config.component2load or self.config.component2load == componentname:
+                            shouter.shout("Append to componentbaselinesentries:"
+                                    " c=%s cn=%s b=%s bn=%s" % (component, componentname, baseline, baselinename))
+                            componentbaselinesentries.append(
+                                ComponentBaseLineEntry(component, baseline, componentname, baselinename))
                         baseline = ""
                         component = ""
                         componentname = ""
@@ -229,6 +239,10 @@ class ImportHandler:
                         self.is_user_aborting(changeentries)
                 shouter.shout("Accepted change %d/%d into working directory" % (amountofacceptedchanges, amountofchanges))
                 Commiter.addandcommit(changeEntry)
+
+                # SVN support
+                if self.config.svnrepodir:
+                    svnCommiter.addandcommit(changeEntry)
         return amountofacceptedchanges
 
     @staticmethod
