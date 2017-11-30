@@ -13,6 +13,8 @@ ScmCommand = lscm
 # Optional - Set encoding of files (For example encoding = UTF-8)
 # See "https://github.com/rtcTo/rtc2git/wiki/Encoding" for further instructions
 encoding =
+# Optional - Set empty SVN repo directory if you want to commit also on a SVN repo
+SVNRepoDir =
 
 [Migration]
 # Stream to be migrated,  referenced by Name or UUID

@@ -9,7 +9,7 @@ import shouter
 import sorter
 from configuration import ComponentBaseLineEntry
 from gitFunctions import Commiter, Differ
-
+from svnFunctions import svnCommiter
 
 class RTCInitializer:
     @staticmethod
@@ -229,6 +229,9 @@ class ImportHandler:
                         self.is_user_aborting(changeEntry)
                 shouter.shout("Accepted change %d/%d into working directory" % (amountofacceptedchanges, amountofchanges))
                 Commiter.addandcommit(changeEntry)
+                # SVN support
+                if self.config.svnrepodir:
+                    svnCommiter.addandcommit(changeEntry)
         return amountofacceptedchanges
 
     @staticmethod
