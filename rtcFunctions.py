@@ -28,13 +28,15 @@ class RTCLogin:
     @staticmethod
     def loginandcollectstreamuuid():
         config = configuration.get()
-        shell.execute("%s login -r %s -u '%s' -P '%s'" % (config.scmcommand, config.repo, config.user, config.password))
+        if not config.stored:
+            shell.execute("%s login -r %s -u '%s' -P '%s'" % (config.scmcommand, config.repo, config.user, config.password))
         config.collectstreamuuids()
 
     @staticmethod
     def logout():
         config = configuration.get()
-        shell.execute("%s logout -r %s" % (config.scmcommand, config.repo))
+        if not config.stored:
+            shell.execute("%s logout -r %s" % (config.scmcommand, config.repo))
 
 
 class WorkspaceHandler:
@@ -187,8 +189,10 @@ class ImportHandler:
         for entry in componentbaselinesentries:
             shouter.shout("Determine initial baseline of " + entry.componentname)
             # use always scm, lscm fails when specifying maximum over 10k
-            command = "scm --show-alias n --show-uuid y list baselines --components %s -r %s -u %s -P '%s' -m 20000" % \
-                      (entry.component, config.repo, config.user, config.password)
+            command = "scm --show-alias n --show-uuid y list baselines --components %s -r %s -m 20000" % \
+                      (entry.component, config.repo)
+            if not config.stored:
+                command += "-u %s -P '%s'" % (config.user, config.password)
             baselineslines = shell.getoutput(command)
             baselineslines.reverse()  # reverse to have earliest baseline on top
 
