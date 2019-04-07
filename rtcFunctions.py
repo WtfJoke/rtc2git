@@ -57,7 +57,12 @@ class WorkspaceHandler:
         self.rtcversion = self.config.rtcversion
 
     def createandload(self, stream, componentbaselineentries=[]):
-        shell.execute("%s create workspace -r %s -s %s %s" % (self.scmcommand, self.repo, stream, self.workspace))
+        if self.config.component2load:
+            shell.execute("%s create workspace -r %s %s --empty" % (self.scmcommand, self.repo, self.workspace))
+            shell.execute("%s add component -r %s %s %s" % (self.scmcommand, self.repo, self.workspace, self.config.component2load))
+        else:
+            shell.execute("%s create workspace -r %s -s %s %s" % (self.scmcommand, self.repo, stream, self.workspace))
+
         if componentbaselineentries:
             self.setcomponentstobaseline(componentbaselineentries, stream)
         else:
@@ -69,6 +74,8 @@ class WorkspaceHandler:
         command = "%s load -r %s %s --force" % (self.scmcommand, self.repo, self.workspace)
         if self.config.includecomponentroots:
             command += " --include-root"
+        if self.config.component2load:
+            command += " %s" % (self.config.component2load)
         shouter.shout("Start (re)loading current workspace: " + command)
         shell.execute(command)
         shouter.shout("Load of workspace finished")
@@ -192,10 +199,13 @@ class ImportHandler:
                         else:
                             baseline = uuidpart[5].strip()[1:-1]
                         baselinename = splittedinformationline[1]
-
                     if baseline and component:
-                        componentbaselinesentries.append(
-                            ComponentBaseLineEntry(component, baseline, componentname, baselinename))
+                        # if component2load is specified append only its entry
+                        if not self.config.component2load or self.config.component2load == componentname:
+                            shouter.shout("Append to componentbaselinesentries:"
+                                    " c=%s cn=%s b=%s bn=%s" % (component, componentname, baseline, baselinename))
+                            componentbaselinesentries.append(
+                                ComponentBaseLineEntry(component, baseline, componentname, baselinename))
                         baseline = ""
                         component = ""
                         componentname = ""

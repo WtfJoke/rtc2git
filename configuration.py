@@ -47,6 +47,9 @@ def read(configname=None):
     workdirectory = generalsection.get('Directory', os.getcwd())
     streamname = shlex.quote(migrationsection['StreamToMigrate'].strip())
     previousstreamname = migrationsection.get('PreviousStream', '').strip()
+
+    component2load = shlex.quote(migrationsection['component2Load'].strip())
+
     baselines = getinitialcomponentbaselines(migrationsection.get('InitialBaseLines'))
     ignorefileextensionsproperty = parsedconfig.get(miscsectionname, 'IgnoreFileExtensions', fallback='')
     ignorefileextensions = parsesplittedproperty(ignorefileextensionsproperty)
@@ -65,6 +68,7 @@ def read(configname=None):
     configbuilder.setmaxchangesetstoaccepttogether(maxchangesetstoaccepttogether)
     configbuilder.setworkdirectory(workdirectory).setstreamname(streamname).setinitialcomponentbaselines(baselines)
     configbuilder.setpreviousstreamname(previousstreamname)
+    configbuilder.setcomponent2load(component2load)
     configbuilder.setignorefileextensions(ignorefileextensions)
     configbuilder.setignoredirectories(ignoredirectories)
     configbuilder.setincludecomponentroots(includecomponentroots).setcommitmessageprefix(commitmessageprefix)
@@ -151,6 +155,7 @@ class Builder:
         self.includecomponentroots = ""
         self.commitmessageprefix = ""
         self.gitattributes = ""
+        self.component2load = ""
 
     def setuser(self, user):
         self.user = user
@@ -198,6 +203,10 @@ class Builder:
 
     def setstreamname(self, streamname):
         self.streamname = streamname
+        return self
+
+    def setcomponent2load(self, component2load):
+        self.component2load = component2load
         return self
 
     def setgitreponame(self, reponame):
@@ -256,7 +265,7 @@ class Builder:
                             self.streamname, self.gitreponame, self.useprovidedhistory,
                             self.useautomaticconflictresolution, self.maxchangesetstoaccepttogether, self.clonedgitreponame, self.rootFolder,
                             self.previousstreamname, self.ignorefileextensions, self.ignoredirectories, self.includecomponentroots,
-                            self.commitmessageprefix, self.gitattributes)
+                            self.commitmessageprefix, self.gitattributes, self.component2load)
 
 
 class ConfigObject:
@@ -265,7 +274,7 @@ class ConfigObject:
                  workdirectory,
                  initialcomponentbaselines, streamname, gitreponame, useprovidedhistory,
                  useautomaticconflictresolution, maxchangesetstoaccepttogether, clonedgitreponame, rootfolder, previousstreamname,
-                 ignorefileextensions, ignoredirectories, includecomponentroots, commitmessageprefix, gitattributes):
+                 ignorefileextensions, ignoredirectories, includecomponentroots, commitmessageprefix, gitattributes, component2load):
         self.user = user
         self.password = password
         self.stored = stored
@@ -293,6 +302,7 @@ class ConfigObject:
         self.includecomponentroots = includecomponentroots
         self.commitmessageprefix = commitmessageprefix
         self.gitattributes = gitattributes
+        self.component2load = component2load
 
     def getlogpath(self, filename):
         if not self.hasCreatedLogFolder:
