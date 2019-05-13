@@ -246,16 +246,18 @@ class ImportHandler:
                         "Change wasnt succesfully accepted into workspace, please load your workspace in eclipse and check whats wrong")
                     self.is_user_aborting(changeEntry)
                     # self.retryacceptincludingnextchangesets(changeEntry, changeentries)
-                if not Differ.has_diff():
+                Commiter.justadd(changeEntry)
+                if not Differ.has_diff(True):
                     # no differences found - force reload of the workspace
                     shouter.shout("No changes for commiting in git detected, going to reload the workspace")
                     WorkspaceHandler().load()
-                    if not Differ.has_diff():
+                    Commiter.justadd(changeEntry)
+                    if not Differ.has_diff(True):
                         shouter.shout("Still no changes... Please load your workspace in eclipse and check whats wrong")
                         # still no differences, something wrong
                         self.is_user_aborting(changeEntry)
                 shouter.shout("Accepted change %d/%d into working directory" % (amountofacceptedchanges, amountofchanges))
-                Commiter.addandcommit(changeEntry)
+                Commiter.justcommit(changeEntry)
         return amountofacceptedchanges
 
     @staticmethod
