@@ -84,6 +84,24 @@ class Commiter:
     findignorepatternregex = re.compile("\{([^\{\}]*)\}")
 
     @staticmethod
+    def justadd(changeentry):
+        Commiter.handleignore()
+        Commiter.replaceauthor(changeentry.author, changeentry.email)
+        shell.execute("git add -A")
+
+        Commiter.handle_captitalization_filename_changes()
+
+    @staticmethod
+    def justcommit(changeentry):
+        shell.execute(Commiter.getcommitcommand(changeentry))
+        Commiter.commitcounter += 1
+        if Commiter.commitcounter is 30:
+            shouter.shout("30 Commits happend, push current branch to avoid out of memory")
+            Commiter.pushbranch("")
+            Commiter.commitcounter = 0
+        shouter.shout("Commited change in local git repository")
+
+    @staticmethod
     def addandcommit(changeentry):
         Commiter.handleignore()
         Commiter.replaceauthor(changeentry.author, changeentry.email)
@@ -339,8 +357,11 @@ class Commiter:
 
 class Differ:
     @staticmethod
-    def has_diff():
-        return shell.execute("git diff --quiet") is 1
+    def has_diff(diff_to_HEAD=False):
+        if diff_to_HEAD:
+            return shell.execute("git diff --cached --quiet") is 1
+        else:
+            return shell.execute("git diff --quiet") is 1
 
 
 class ExtensionFilter:
